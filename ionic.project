@@ -1,4 +1,13 @@
 {
   "name": "solfeggio",
-  "app_id": ""
+  "app_id": "",
+  "gulpStartupTasks": [
+    "build",
+    "watch"
+  ],
+  "watchPatterns": [
+    "www/**/*",
+    "!www/lib/**/*"
+  ]
+
 }

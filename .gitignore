@@ -1,6 +1,7 @@
 node_modules/
 bower_components/
-platforms/
+platforms/*
+!platforms/*.json
 plugins/*
 !plugins/*.json
 www/

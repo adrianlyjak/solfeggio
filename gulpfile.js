@@ -7,13 +7,36 @@ var sass = require('gulp-sass');
 var minifyCss = require('gulp-minify-css');
 var bowerFiles = require('main-bower-files');
 var inject = require('gulp-inject');
-var exec = require('child_process').exec
+var child_process = require('child_process')
 var debug = require('gulp-debug');
+var browserify = require('browserify');
+var babelify = require('babelify');
+var source = require('vinyl-source-stream');
+var sourcemaps = require('gulp-sourcemaps');
 
+gulp.task('build', ['assets', 'sass', 'js', 'index']);
+gulp.task('default', ['build']);
+gulp.task('watch', function() {
+  gulp.watch(srcFolder('scss/**/*.scss'), ['sass']);
+  gulp.watch(srcFolder('**/*.js'), ['js']);
+  gulp.watch(srcFolder('index.html'), ['index']);
+  gulp.watch(srcFolder(['/**/*.html', 'img/**/*.*']), ['index', 'assets']);
+});
 
 var paths = {
   src: 'src',
   dist: 'www'
+}
+
+function exec(string, cb) {
+  child_process.exec(string, function (error, stdout, stderr) {
+    if (error) {
+      gutil.log('ERROR: `' + string + '`: ' + stderr);
+    } else {
+      gutil.log('`' + string + '` ' + stdout);
+      if (cb) cb()
+    }
+  });
 }
 
 function withPrefix(prefixString, _paths) {
@@ -27,32 +50,33 @@ function withPrefix(prefixString, _paths) {
   return paths.map((path) => prefix(prefixString, path))
 }
 
-function srcIn(paths, options) {
-  return gulp.src(withPrefix('src', paths), options);
+function srcFolder(pathStrings) {
+  return withPrefix(paths.src, pathStrings);
 }
 
-gulp.task('default', ['sass', 'js', 'inject-bower', 'images']);
-
-gulp.task('sass', function() {
-  return srcIn('scss/*.scss')
+gulp.task('sass', () => {
+  return gulp.src(srcFolder('scss/*.scss'))
     .pipe(sass())
     .pipe(minifyCss())
     .pipe(concat('index.css'))
     .pipe(gulp.dest(paths.dist));
 });
 
-gulp.task('inject-bower', function() {
-  return srcIn('index.html')
+gulp.task('index', () => {
+  return gulp.src(srcFolder('index.html'))
     .pipe(inject(gulp.src(bowerFiles(), {read: false}), {name: 'bower'}))
     .pipe(gulp.dest(paths.dist));
 });
 
-gulp.task('js', function() {
-  return srcIn('**/*.js')
-    .pipe(concat('index.js'))
-    .pipe(gulp.dest(paths.dist));
+gulp.task('js', () => {
+  return browserify({entries: paths.src + '/index.js', extensions: ['.js'], debug: true})
+      .transform(babelify)
+      .bundle()
+      .pipe(source('index.js'))
+      .pipe(gulp.dest(paths.dist));
 });
 
-gulp.task('images', function() {
-  exec('cp -r src/images www/images');
+gulp.task('assets', () => {
+  exec('mkdir -p www/img && cp -r src/img www/')
+  exec('mkdir -p www/bower_components && cp -r bower_components www/');
 });
