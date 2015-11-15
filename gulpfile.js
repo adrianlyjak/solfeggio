@@ -17,10 +17,19 @@ var sourcemaps = require('gulp-sourcemaps');
 gulp.task('build', ['assets', 'sass', 'js', 'index']);
 gulp.task('default', ['build']);
 gulp.task('watch', function() {
-  gulp.watch(srcFolder('scss/**/*.scss'), ['sass']);
-  gulp.watch(srcFolder('**/*.js'), ['js']);
-  gulp.watch(srcFolder('index.html'), ['index']);
-  gulp.watch(srcFolder(['/**/*.html', 'img/**/*.*']), ['index', 'assets']);
+  function watch(source,task) {
+    try {
+      gulp.watch(srcFolder(source), task);
+    } catch (e) {
+      console.log("CAUGHT ERROR FOR " + task)
+      console.log(e, e.printStackTrace());
+      watch(source,task);
+    }
+  }
+  watch('scss/**/*.scss', ['sass']);
+  watch('**/*.js', ['js']);
+  watch('index.html', ['index']);
+  watch(['/**/*.html', 'img/**/*.*'], ['index', 'assets']);
 });
 
 var paths = {
@@ -69,6 +78,7 @@ gulp.task('index', () => {
 });
 
 gulp.task('js', () => {
+  // TODO I think browserify needs to happen after babelify for `import '...' to work`
   return browserify({entries: paths.src + '/index.js', extensions: ['.js'], debug: true})
       .transform(babelify)
       .bundle()
@@ -77,6 +87,8 @@ gulp.task('js', () => {
 });
 
 gulp.task('assets', () => {
-  exec('mkdir -p www/img && cp -r src/img www/')
   exec('mkdir -p www/bower_components && cp -r bower_components www/');
+  exec('mkdir -p www/img && cp -r src/img www/');
+  exec('mkdir -p www/templates && cp -r src/templates www/');
+  
 });

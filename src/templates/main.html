@@ -1,0 +1,8 @@
+<ion-view>
+	<ion-list>
+		<ion-item ng-click="toggle(note)" ng-repeat="note in notes">
+			{{note.name}} - {{note.hertz}}
+			<input type="checkbox" ng-model="note.config.binaural" ng-change="updateAudio(note)">Binaural</input>
+		</ion-item>
+	</ion-list>
+</ion-view>
