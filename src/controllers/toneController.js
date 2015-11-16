@@ -1,7 +1,7 @@
-function toneController($scope, $stateParams, $state, AudioService, SolfeggioScaleService) {
+function toneController($scope, $stateParams, $state, AudioService, ToneService) {
   return Object.assign($scope, {
     initTone(hz) {
-      $scope.tone = Object.assign(SolfeggioScaleService.toneAt(hz), { config: AudioService.configTone(hz) });    
+      $scope.tone = Object.assign(ToneService.toneAt(hz), { config: AudioService.configTone(hz) });    
     },
     initToneFromRoute() {
       console.log($stateParams)

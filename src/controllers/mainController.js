@@ -1,7 +1,7 @@
-function mainController($scope, SolfeggioScaleService) {
+function mainController($scope, ToneService) {
   
   Object.assign($scope, {
-    tones: SolfeggioScaleService.tones()
+    tones: ToneService.tones()
   });
   
 }

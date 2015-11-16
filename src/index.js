@@ -34,9 +34,10 @@ solfeggio.config(function($stateProvider, $urlRouterProvider, $httpProvider) {
 });
 
 require('./services/AudioService')(solfeggio);
-require('./services/SolfeggioScaleService')(solfeggio);
+require('./services/ToneService')(solfeggio);
 require('./controllers/mainController')(solfeggio);
 require('./controllers/toneController')(solfeggio);
 require('./directives/toneKey')(solfeggio);
+
 
 

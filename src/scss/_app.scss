@@ -1,9 +1,19 @@
 @-webkit-keyframes colorPulse { 
-  0% {background-color: red;} 
-  50% {background-color: white;} 
-  100% {background-color: blue;} 
+  0% {background-color: rgba(100,100,100,0.1);} 
+  100% {background-color: rgba(200,200,200,0.3);} 
 }
 
 .tone-list-item.active {
-  -webkit-animation: colorPulse 10s infinite alternate;
+  -webkit-animation: colorPulse 6s infinite alternate;
+}
+
+ion-nav-view, body, ion-view, ion-content {
+  background-color: $dark;
+}
+
+.item.has-click-target {
+  padding:0;
+}
+.click-target {
+  padding: 16px
 }
