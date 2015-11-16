@@ -12,7 +12,7 @@ var debug = require('gulp-debug');
 var browserify = require('browserify');
 var babelify = require('babelify');
 var source = require('vinyl-source-stream');
-var sourcemaps = require('gulp-sourcemaps');
+var sourcemaps = require('gulp-sourcemaps'); // TODO add source maps, (some hoops to jump through for browserify)
 
 gulp.task('build', ['assets', 'sass', 'js', 'index']);
 gulp.task('default', ['build']);

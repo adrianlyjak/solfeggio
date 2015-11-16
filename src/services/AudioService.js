@@ -7,67 +7,84 @@ function connect(nodes) {
   });
 }
 
-var AudioService = function() {
+var AudioService = function(WaveService) {
 
   var audioContext = new AudioContext();
-  var _notes = {};
+  var _tones = {};
   var defaultConfig = {
-    binaural: true,
+    binaural: false,
     on: false,
-    volume: 1
+    volume: 1,
+    waveType: 'sine'
   };
 
-  var ONE_BEAT_SECONDS = 0.005;
+  var BEAT_DURATION = 0.05;
   
   function schedulePan(beat) {
     if (beat % 2 !== 0) return;
     var leftOrRight = beat % 4 === 0 ? 1 : -1;
-    Object.keys(_notes)
-      .map((key) => _notes[key])
-      .filter((note) => note.config.binaural)
-      .forEach((note) => {
-        note.nodes.stereo.pan.linearRampToValueAtTime(leftOrRight * 0.5, audioContext.currentTime + (ONE_BEAT_SECONDS  * 2));
+    Object.keys(_tones)
+      .map((key) => _tones[key])
+      .filter((tone) => tone.config.binaural)
+      .forEach((tone) => {
+        tone.nodes.stereo.pan.linearRampToValueAtTime(leftOrRight * 1, audioContext.currentTime + (BEAT_DURATION  * 2));
       });
   }
 
-  var incrementAndGetBeat = (function ()  {
-    var current = -1;
-    return function incrementAndGetBeat() {
-      return current += 1
-    }
-  })();
-
+  var beatCount = -1;
   setInterval(() => {
-    var beat = incrementAndGetBeat();
+    var beat = beatCount += 1;
     schedulePan(beat)
     
-  }, ONE_BEAT_SECONDS * 1000);
+  }, BEAT_DURATION * 1000);
 
   var onPreferenceChanged = {
-    binaural(note) { 
+    binaural(tone) { 
     },
-    on(note) {
-      if (note.config.on) {
-        note.nodes.volume.connect(audioContext.destination)
+    on(tone) {
+      if (tone.config.on) {
+        tone.nodes.volume.connect(audioContext.destination)
       } else {
-        note.nodes.volume.disconnect();
+        tone.nodes.volume.disconnect();
       }
     },
-    volume(note) {
-      note.nodes.volume.gain = note.config.volume
+    volume(tone) {
+      console.log('change volume to' + tone.config.volume);
+      tone.nodes.volume.gain.value = tone.config.volume
+    },
+    binaural(tone) {
+      if (!tone.config.binaural) {
+        var pan = tone.nodes.stereo.pan;
+        pan.cancelScheduledValues(0);
+        pan.value = 0;
+      }
+    },
+    waveType(tone) {
+      var wave = waveTypes[tone.config.waveType];
+      if (typeof wave === 'string') {
+        tone.nodes.oscillator.type = wave;  
+      } else {
+        tone.nodes.oscillator.setPeriodicWave(loadWaveForm(wave));
+      }
+      
     }
   }
 
   function noteAt(hz) {
-    if (!_notes[hz]) {
+    if (!_tones[hz]) {
       var volume = audioContext.createGain();
       var flux = audioContext.createGain();
       var stereo = audioContext.createStereoPanner();
       var oscillator = audioContext.createOscillator();
-      oscillator.frequency.value = hz;
+      try {
+        oscillator.frequency.value = hz;
+      } catch (e) {
+        throw new Error(`Expected number. Cannot configure hertz ${JSON.stringify(hz)}`)
+      }
+
       oscillator.start(0);
       connect([volume, flux, stereo, oscillator]);
-      _notes[hz] = {
+      _tones[hz] = {
         nodes: {
           volume,
           flux,
@@ -77,11 +94,28 @@ var AudioService = function() {
         config: Object.assign({}, defaultConfig)
       };
     }
-    return _notes[hz];
+    return _tones[hz];
   }
 
+
+  function loadWaveForm(waveForm) {
+    var real = new Float32Array(waveForm.real);
+    var imag = new Float32Array(waveForm.imag);
+    return audioContext.createPeriodicWave(real, imag);
+  }
+  var waveTypes = {
+    sine: 'sine',
+    triangle: 'triangle',
+    square: 'square',
+    sawtooth: 'sawtooth'
+  };
+  setTimeout(() => {
+    Object.assign(waveTypes, WaveService.waves());
+  }, 1000)
+
+
   var service = {
-    configHertz: function(hz) {
+    configTone: function(hz) {
       return Object.assign({}, noteAt(hz).config);
     },
     update: function(hz, modifications) {
@@ -93,9 +127,16 @@ var AudioService = function() {
       modifiedKeys.forEach((key) => {
         onPreferenceChanged[key](current, modifications[key]);
       });
-      return service.configHertz(hz);
+      return service.configTone(hz);
+    },
+    waveTypes() {
+      return Object.keys(waveTypes)
     }
   }
   return service;
 }
-module.exports = AudioService;
+
+module.exports = function(app) {
+  app.factory('AudioService', AudioService);
+}
+

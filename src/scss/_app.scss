@@ -1,0 +1,9 @@
+@-webkit-keyframes colorPulse { 
+  0% {background-color: red;} 
+  50% {background-color: white;} 
+  100% {background-color: blue;} 
+}
+
+.tone-list-item.active {
+  -webkit-animation: colorPulse 10s infinite alternate;
+}

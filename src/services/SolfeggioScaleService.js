@@ -1,5 +1,5 @@
 var SolfeggioScaleService =  function() {
-  var notes = [{
+  var tones = [{
     name: 'LA', 
     hertz: 852
   }, {
@@ -18,11 +18,21 @@ var SolfeggioScaleService =  function() {
     name: 'UT', 
     hertz: 396
   }];
+  var toneMap = tones.reduce((map, tone) => {
+    map[tone.hertz] = tone;
+    return map;
+  }, {})
 
-  return {
-    notes() {
-      return notes.slice(0).map((note) => Object.assign({}, note))
+  var service = {
+    tones() {
+      return tones.slice(0).map((tone) => Object.assign({}, tone))
+    },
+    toneAt(hz) {
+      return toneMap[hz]
     }
   };
+  return service;
 }
-module.exports =  SolfeggioScaleService;
+module.exports = function(app) {
+  app.factory('SolfeggioScaleService', SolfeggioScaleService);
+};

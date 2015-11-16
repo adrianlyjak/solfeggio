@@ -13,39 +13,31 @@ solfeggio.run(function($ionicPlatform) {
   });
 });
 
-solfeggio.config(function($stateProvider, $urlRouterProvider) {
+solfeggio.config(function($stateProvider, $urlRouterProvider, $httpProvider) {
+  delete $httpProvider.defaults.headers.common['X-Requested-With'];
+  $httpProvider.defaults.useXDomain = true;﻿
+
   $urlRouterProvider.otherwise('/');
 
-  $stateProvider.state('home', {
-    url: '/',
-    templateUrl: 'templates/main.html',
-    controller: 'MainController'
-  });
-});
-
-solfeggio.factory('AudioService', require('./services/AudioService'))
-
-solfeggio.factory('SolfeggioScaleService', require('./services/SolfeggioScaleService'));
-
-
-
-solfeggio.controller('MainController', function($scope, AudioService, SolfeggioScaleService) {
-  $scope.notes = SolfeggioScaleService.notes().map((n) => {
-    return Object.assign(n, { config: AudioService.configHertz(n.hertz) })
-  });
-  $scope.toggle = function(note) {
-    note.config.on = !note.config.on
-    $scope.updateAudio(note)
-    
-  }
-  $scope.updateAudio = function(note) {
-    AudioService.update(note.hertz, note.config)
-  }
+  $stateProvider
+    .state('tones', {
+      url: '/',
+      templateUrl: 'templates/main.html',
+      controller: 'mainController'
+    })
+    .state('tone', {
+      url: '/tone/:hz',
+      templateUrl: 'templates/tone.html',
+      controller: 'toneController'
+    })
 
 });
 
+require('./services/AudioService')(solfeggio);
+require('./services/WaveService')(solfeggio);
+require('./services/SolfeggioScaleService')(solfeggio);
+require('./controllers/mainController')(solfeggio);
+require('./controllers/toneController')(solfeggio);
+require('./directives/toneKey')(solfeggio);
 
 
-solfeggio.controller('SolfeggioToneController', function($scope, AudioService) {
-
-});
