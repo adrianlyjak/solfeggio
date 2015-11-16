@@ -17,8 +17,7 @@ function toneController($scope, $stateParams, $state, AudioService, SolfeggioSca
     },
     showDetails() {
       $state.go('tone', { hz: $scope.tone.hertz })
-    },
-    waveTypes: AudioService.waveTypes()
+    }
   });
 
 }

@@ -9,13 +9,5 @@
     <input type="range" name="volume" min="0" max="1" step="0.01" ng-model="tone.config.volume" ng-change="updateAudio()">
     <i class="icon ion-volume-high"></i>
   </ion-item>
-  <label class="item item-input item-select">
-    <div class="input-label">
-      Tone
-    </div>
-    <select ng-model="tone.config.waveType" ng-options="waveType for waveType in waveTypes" ng-change="updateAudio()">
-    </select>
-  </label>
-
 </ion-list>
 

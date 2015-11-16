@@ -7,7 +7,7 @@ function connect(nodes) {
   });
 }
 
-var AudioService = function(WaveService) {
+var AudioService = function() {
 
   var audioContext = new AudioContext();
   var _tones = {};
@@ -15,7 +15,6 @@ var AudioService = function(WaveService) {
     binaural: false,
     on: false,
     volume: 1,
-    waveType: 'sine'
   };
 
   var BEAT_DURATION = 0.05;
@@ -58,15 +57,6 @@ var AudioService = function(WaveService) {
         pan.cancelScheduledValues(0);
         pan.value = 0;
       }
-    },
-    waveType(tone) {
-      var wave = waveTypes[tone.config.waveType];
-      if (typeof wave === 'string') {
-        tone.nodes.oscillator.type = wave;  
-      } else {
-        tone.nodes.oscillator.setPeriodicWave(loadWaveForm(wave));
-      }
-      
     }
   }
 
@@ -97,23 +87,6 @@ var AudioService = function(WaveService) {
     return _tones[hz];
   }
 
-
-  function loadWaveForm(waveForm) {
-    var real = new Float32Array(waveForm.real);
-    var imag = new Float32Array(waveForm.imag);
-    return audioContext.createPeriodicWave(real, imag);
-  }
-  var waveTypes = {
-    sine: 'sine',
-    triangle: 'triangle',
-    square: 'square',
-    sawtooth: 'sawtooth'
-  };
-  setTimeout(() => {
-    Object.assign(waveTypes, WaveService.waves());
-  }, 1000)
-
-
   var service = {
     configTone: function(hz) {
       return Object.assign({}, noteAt(hz).config);
@@ -128,9 +101,6 @@ var AudioService = function(WaveService) {
         onPreferenceChanged[key](current, modifications[key]);
       });
       return service.configTone(hz);
-    },
-    waveTypes() {
-      return Object.keys(waveTypes)
     }
   }
   return service;
