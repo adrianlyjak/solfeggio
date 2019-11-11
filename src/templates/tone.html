@@ -17,7 +17,7 @@
       <ion-toggle class="toggle-calm item item-dark" ng-model="tone.config.binaural" ng-checked="tone.config.binaural" ng-change="updateAudio()" toggle-class="toggle-calm">Binaural</ion-toggle>
       <ion-item class="range item-dark range-calm">
         <i class="icon ion-volume-low"></i>
-        <input type="range" name="volume" min="0" max="1" step="0.01" ng-model="tone.config.volume" ng-change="updateAudio()">
+        <input type="range" name="volume" min="0" max="0.3" step="0.003" ng-model="tone.config.volume" ng-change="updateAudio()">
         <i class="icon ion-volume-high"></i>
       </ion-item>
     </ion-list>

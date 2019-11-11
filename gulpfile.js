@@ -73,7 +73,7 @@ gulp.task('sass', () => {
 
 gulp.task('index', () => {
   return gulp.src(srcFolder('index.html'))
-    .pipe(inject(gulp.src(bowerFiles(), {read: false}), {name: 'bower'}))
+    .pipe(inject(gulp.src(bowerFiles(), {read: false}), {name: 'bower', addRootSlash: false}))
     .pipe(gulp.dest(paths.dist));
 });
 

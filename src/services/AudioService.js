@@ -10,39 +10,51 @@ function connect(nodes) {
 var AudioService = function() {
 
   var audioContext = new AudioContext();
+  var root = audioContext.createGain();
+  root.gain.value = 0.5;
+  root.connect(audioContext.destination)
   var _tones = {};
   var defaultConfig = {
     binaural: false,
     on: false,
-    volume: 1,
+    volume: 0.2,
   };
 
   var BEAT_DURATION = 0.05;
-  
-  function schedulePan(beat) {
-    if (beat % 2 !== 0) return;
-    var leftOrRight = beat % 4 === 0 ? 1 : -1;
-    Object.keys(_tones)
-      .map((key) => _tones[key])
-      .filter((tone) => tone.config.binaural)
-      .forEach((tone) => {
-        tone.nodes.stereo.pan.linearRampToValueAtTime(leftOrRight * 1, audioContext.currentTime + (BEAT_DURATION  * 2));
-      });
+  var BEATS_PER_SCHEDULE = 40;
+  var BEATS_PER_SECOND = 1 / BEAT_DURATION;
+
+  function currentBeatTime() {
+    var currentTime = audioContext.currentTime;
+    return currentTime - (currentTime % BEAT_DURATION);
   }
 
-  var beatCount = -1;
+  function schedulePan() {
+    var binaurals = Object.keys(_tones)
+      .map((key) => _tones[key])
+      .filter((tone) => tone.config.binaural);
+    var base = currentBeatTime();
+
+    for (var beat = 0; beat < BEATS_PER_SCHEDULE / 2; beat++) {
+      var leftOrRight = beat % 2 === 0 ? 1 : -1;
+      binaurals
+        .forEach((tone) => {
+          tone.nodes.stereo.pan.linearRampToValueAtTime(leftOrRight * 1, base + (beat * BEAT_DURATION  * 2));
+        });
+    }
+  }
+
   setInterval(() => {
-    var beat = beatCount += 1;
-    schedulePan(beat)
+    schedulePan()
     
-  }, BEAT_DURATION * 1000);
+  }, BEAT_DURATION * 1000 * BEATS_PER_SCHEDULE);
 
   var onPreferenceChanged = {
     binaural(tone) { 
     },
     on(tone) {
       if (tone.config.on) {
-        tone.nodes.volume.connect(audioContext.destination)
+        tone.nodes.volume.connect(root)
       } else {
         tone.nodes.volume.disconnect();
       }
@@ -56,6 +68,8 @@ var AudioService = function() {
         var pan = tone.nodes.stereo.pan;
         pan.cancelScheduledValues(0);
         pan.value = 0;
+      } else {
+        schedulePan()
       }
     }
   }
